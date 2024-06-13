@@ -44,9 +44,9 @@ pipeline {
                 script {
                     // Use sed to replace the old URL with the new URL in the file
                     sh "sed -i 's|${env.OLD_URL}|${env.BACKEND_URL}|g' ${env.FILE_PATH}"
+                    sh 'npm run build'
+                    sh "cp -r build/ ${BUILD_DIR_DEV}"
                 }
-                sh 'npm run build'
-                cp -r build/ ${BUILD_DIR_DEV}
             }
         }
         stage('Deploy to Development') {
