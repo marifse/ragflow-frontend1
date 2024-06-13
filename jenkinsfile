@@ -46,6 +46,7 @@ pipeline {
                     sh "sed -i 's|${env.OLD_URL}|${env.BACKEND_URL}|g' ${env.FILE_PATH}"
                     sh 'npm run build'
                     sh "cp -r dist/ ${BUILD_DIR_DEV}"
+               
                 }
             }
         }
