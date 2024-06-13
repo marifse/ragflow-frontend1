@@ -1,0 +1,64 @@
+pipeline {
+    agent any
+
+    environment {
+        // Define your AWS profiles for different environments
+        DEV_PROFILE = 'aws-dev-profile'
+        STAGING_PROFILE = 'aws-staging-profile'
+        PROD_PROFILE = 'aws-prod-profile'
+
+        // Define your S3 buckets or any other deployment targets
+        DEV_S3_BUCKET = 's3://your-dev-bucket'
+        STAGING_S3_BUCKET = 's3://your-staging-bucket'
+        PROD_S3_BUCKET = 's3://your-prod-bucket'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Checkout the code from your source repository
+                git branch: 'main', url: 'https://your-repo-url.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                script {
+                    // Install project dependencies
+                    sh 'npm install'
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                script {
+                    // Build the React application
+                    sh 'npm run build'
+                }
+            }
+        }
+
+        stage('Deploy to Development') {
+            steps {
+                script {
+                    // Deploy to the development environment
+                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-dev-credentials-id']]) {
+                        s3Delete(bucket: 'ecod-s3-prod', path:'**/*')
+                        s3Upload(bucket: 'ecod-s3-prod', workingDir:'build', includePathPattern:'**/*');
+                    }
+                }
+            }
+        }
+
+    }
+
+    post {
+        success {
+            echo 'Build and deployment completed successfully.'
+        }
+        failure {
+            echo 'Build or deployment failed.'
+        }
+    }
+}

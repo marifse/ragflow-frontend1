@@ -1,0 +1,88 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_REGION = 'us-east-1'
+        CRED_DEV = 'AKIA3FLD2JWMDJLJ5NH2'
+        CRED_STG = 'rbs-aws-cred-stg'
+        CRED_PROD = 'rbs-aws-cred-prod'
+        S3_BUCKET_DEV = 'rbs-frontend-dev'
+        S3_BUCKET_STAGING = 'rbs-frontend-stg'
+        S3_BUCKET_PROD = 'rbs-frontend-prod'
+        FILE_PATH = './config.ts' // Update this to the file you want to modify and upload
+        OLD_URL = 'https://localhost:3001'
+        BACKEND_URL_DEV = 'https://api.dev.wcsaas.com' // The new URL you want to set for dev backend
+        BACKEND_URL_STG = 'https://api.stg.wcsaas.com' // The new URL you want to set for staging backend
+        BACKEND_URL_PROD = 'https://api.prod.wcsaas.com' // The new URL you want to set for production backend
+        BUILD_DIR_DEV = 'build-development'
+        BUILD_DIR_STG = 'build-staging'
+        BUILD_DIR_PROD = 'build-prod'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/marifse/RBS-Frontend.git'
+            }
+        }
+        stage('Install Dependencies') {
+            
+            steps {
+                sh 'npm install'
+            }
+        }
+        stage('Build Dev') {
+            when {
+                branch 'main'
+            }
+            environment {
+                FILE_PATH = "${FILE_PATH}"
+                OLD_URL = "${OLD_URL}"
+                BACKEND_URL = "${BACKEND_URL_DEV}"
+            }
+            steps {
+                script {
+                    // Use sed to replace the old URL with the new URL in the file
+                    sh "sed -i 's|${env.OLD_URL}|${env.BACKEND_URL}|g' ${env.FILE_PATH}"
+                }
+                sh 'npm run build'
+                cp -r build/ ${BUILD_DIR_DEV}
+            }
+        }
+        stage('Deploy to Development') {
+            when {
+                branch 'main'
+            }
+            environment {
+                AWS_REGION = "${AWS_REGION}"
+                BUILD_DIR = "${BUILD_DIR_DEV}"
+                S3_BUCKET = "${S3_BUCKET_DEV}"
+                AWS_CREDENTIALS_ID = "${CRED_DEV}"
+            }
+            steps {
+                deployToS3()
+            }
+        }
+
+    }
+
+     post {
+        always {
+            echo 'Pipeline finished.'
+        }
+        success {
+            echo 'Pipeline succeeded.'
+        }
+        failure {
+            echo 'Pipeline failed.'
+        }
+    }
+}
+
+def deployToS3() {
+    withAWS(region: env.AWS_REGION, credentials: env.AWS_CREDENTIALS_ID) {
+        sh """
+            aws s3 sync ${BUILD_DIR} s3://${S3_BUCKET}/ --delete --exclude '.git/*' --exclude 'Jenkinsfile'
+        """
+    }
+}
