@@ -9,7 +9,7 @@ pipeline {
         CRED_DEV = 'AKIA3FLD2JWMDJLJ5NH2'
         CRED_STG = 'rbs-aws-cred-stg'
         CRED_PROD = 'rbs-aws-cred-prod'
-        S3_BUCKET_DEV = 'rbs-frontend-dev'
+        S3_BUCKET_DEV = 'rbs-frontend-dev-manual'
         S3_BUCKET_STAGING = 'rbs-frontend-stg'
         S3_BUCKET_PROD = 'rbs-frontend-prod'
         FILE_PATH = './config.ts' // Update this to the file you want to modify and upload
@@ -53,9 +53,7 @@ pipeline {
             }
         }
         stage('Deploy to Development') {
-            when {
-                branch 'main'
-            }
+            
             environment {
                 AWS_REGION = "${AWS_REGION}"
                 BUILD_DIR = "${BUILD_DIR_DEV}"
