@@ -1,5 +1,6 @@
 pipeline {
     agent any
+    triggers { scm('H/5 * * * *') } 
 
     environment {
         AWS_REGION = 'us-east-1'
@@ -22,7 +23,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/marifse/ragflow-frontend1.git'
+                git branch: 'main', url: 'https://github.com/marifse/ragflow-frontend1.git'
             }
 
         }
