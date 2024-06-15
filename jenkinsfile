@@ -1,6 +1,8 @@
 pipeline {
     agent any
-    triggers { github('H/5 * * * *') }
+    triggers {
+         githubPush()
+    }
 
     environment {
         AWS_REGION = 'us-east-1'
