@@ -36,7 +36,7 @@ pipeline {
         }
         stage('Build Dev') {
             when {
-                branch 'main'
+                branch 'origin/main'
             }
             environment {
                 FILE_PATH = "${FILE_PATH}"
@@ -55,7 +55,7 @@ pipeline {
         }
         stage('Deploy to Development') {
             when {
-                branch 'main'
+                branch 'origin/main'
             }
             environment {
                 AWS_REGION = "${AWS_REGION}"
