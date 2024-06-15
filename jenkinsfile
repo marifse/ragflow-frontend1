@@ -9,7 +9,7 @@ pipeline {
         CRED_DEV = 'rbs-aws-cred-dev'
         CRED_STG = 'rbs-aws-cred-stg'
         CRED_PROD = 'rbs-aws-cred-prod'
-        S3_BUCKET_DEV = 'rbs-frontend-dev-manual'
+        S3_BUCKET_DEV = 'rbs-frontend-dev'
         S3_BUCKET_STAGING = 'rbs-frontend-stg'
         S3_BUCKET_PROD = 'rbs-frontend-prod'
         FILE_PATH = './config.ts' // Update this to the file you want to modify and upload
@@ -30,13 +30,14 @@ pipeline {
 
         }
         stage('Install Dependencies') {
-            
             steps {
                 sh 'npm install'
             }
         }
         stage('Build Dev') {
-        
+            when {
+                branch 'main'
+            }
             environment {
                 FILE_PATH = "${FILE_PATH}"
                 OLD_URL = "${OLD_URL}"
@@ -53,7 +54,9 @@ pipeline {
             }
         }
         stage('Deploy to Development') {
-            
+            when {
+                branch 'main'
+            }
             environment {
                 AWS_REGION = "${AWS_REGION}"
                 BUILD_DIR = "${BUILD_DIR_DEV}"
@@ -64,7 +67,6 @@ pipeline {
                 deployToS3()
             }
         }
-
     }
 
      post {
