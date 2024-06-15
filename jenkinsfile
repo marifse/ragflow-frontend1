@@ -36,9 +36,7 @@ pipeline {
             }
         }
         stage('Build Dev') {
-            when {
-                branch 'main'
-            }
+        
             environment {
                 FILE_PATH = "${FILE_PATH}"
                 OLD_URL = "${OLD_URL}"
