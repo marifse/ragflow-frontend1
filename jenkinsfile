@@ -23,7 +23,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/marifse/ragflow-frontend1.git'
+                git 'https://github.com/marifse/ragflow-frontend1.git'
             }
 
         }
