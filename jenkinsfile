@@ -1,5 +1,8 @@
 pipeline {
     agent any
+    triggers {
+    githubPush()
+    }
 
     environment {
         AWS_REGION = 'us-east-1'
@@ -24,7 +27,7 @@ pipeline {
             steps {
                 git branch: 'main', url: 'https://github.com/marifse/ragflow-frontend1.git'
             }
-            
+
         }
         stage('Install Dependencies') {
             
