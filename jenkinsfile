@@ -53,6 +53,44 @@ pipeline {
                 }
             }
         }
+        stage('Build Staging') {
+            when {
+                expression {env.GIT_BRANCH == 'origin/stg'}
+            }
+            environment {
+                FILE_PATH = "${FILE_PATH}"
+                OLD_URL = "${OLD_URL}"
+                BACKEND_URL = "${BACKEND_URL_STG}"
+            }
+            steps {
+                script {
+                    // Use sed to replace the old URL with the new URL in the file
+                    sh "sed -i 's|${env.OLD_URL}|${env.BACKEND_URL}|g' ${env.FILE_PATH}"
+                    sh 'npm run build'
+                    sh "cp -r dist/ ${BUILD_DIR_STG}"
+               
+                }
+            }
+        }
+        stage('Build Production') {
+            when {
+                expression {env.GIT_BRANCH == 'origin/prod'}
+            }
+            environment {
+                FILE_PATH = "${FILE_PATH}"
+                OLD_URL = "${OLD_URL}"
+                BACKEND_URL = "${BACKEND_URL_PROD}"
+            }
+            steps {
+                script {
+                    // Use sed to replace the old URL with the new URL in the file
+                    sh "sed -i 's|${env.OLD_URL}|${env.BACKEND_URL}|g' ${env.FILE_PATH}"
+                    sh 'npm run build'
+                    sh "cp -r dist/ ${BUILD_DIR_PROD}"
+               
+                }
+            }
+        }
         stage('Deploy to Development') {
             when {
                 expression {env.GIT_BRANCH == 'origin/master'}
@@ -62,6 +100,34 @@ pipeline {
                 BUILD_DIR = "${BUILD_DIR_DEV}"
                 S3_BUCKET = "${S3_BUCKET_DEV}"
                 AWS_CREDENTIALS_ID = "${CRED_DEV}"
+            }
+            steps {
+                deployToS3()
+            }
+        }
+        stage('Deploy to Staging') {
+            when {
+                expression {env.GIT_BRANCH == 'origin/stg'}
+            }
+            environment {
+                AWS_REGION = "${AWS_REGION}"
+                BUILD_DIR = "${BUILD_DIR_STG}"
+                S3_BUCKET = "${S3_BUCKET_STG}"
+                AWS_CREDENTIALS_ID = "${CRED_STG}"
+            }
+            steps {
+                deployToS3()
+            }
+        }
+        stage('Deploy to Production') {
+            when {
+                expression {env.GIT_BRANCH == 'origin/prod'}
+            }
+            environment {
+                AWS_REGION = "${AWS_REGION}"
+                BUILD_DIR = "${BUILD_DIR_PROD}"
+                S3_BUCKET = "${S3_BUCKET_PROD}"
+                AWS_CREDENTIALS_ID = "${CRED_PROD}"
             }
             steps {
                 deployToS3()
